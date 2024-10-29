@@ -1,8 +1,6 @@
 > AIFFEL_quest_rs
 >> MainQuest
 >>> Quest01
->>>> .ipynb
->>>> README.md
 
 >>> Quest02
 >>>> .ipynb
