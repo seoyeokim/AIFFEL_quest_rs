@@ -1,0 +1,478 @@
+#Sequential 모델
+
+# 버전 1
+
+from tensorflow import keras
+from tensorflow.keras import layers
+
+model = keras.Sequential([
+    layers.Dense(64, activation="relu"),
+    layers.Dense(10, activation="softmax"),
+])
+
+# 버전 2
+
+model = keras.Sequential()
+model.add(layers.Dense(64, activation="relu"))
+model.add(layers.Dense(10, activation="softmax"))
+
+# 가중치 생성 (크기가 (,3)인 샘플이 인풋)
+
+model.build(input_shape=(None, 3))
+model.weights
+
+# 파라미터 확인
+
+model.summary()
+
+# 각 층에 이름 부여
+
+model = keras.Sequential(name="my_example_model")
+model.add(layers.Dense(64, activation="relu", name="my_first_layer"))
+model.add(layers.Dense(10, activation="softmax", name="my_second_layer"))
+model.build((None, 3))    # build가 있어야 파라미터 확인 가능
+model.summary()
+
+model = keras.Sequential()
+model.add(keras.Input(shape=(3,)))
+model.add(layers.Dense(64, activation="relu"))
+model.summary()
+
+#함수형 API
+
+inputs = keras.Input(shape=(3,), name="my_input")
+features = layers.Dense(64, activation="relu")(inputs)
+outputs = layers.Dense(10, activation="softmax")(features)
+model = keras.Model(inputs=inputs, outputs=outputs)
+
+
+inputs.shape
+
+# inputs은 심볼릭 텐서 : 데이터를 가지고 있진 않지만 사용할 때 모델이 보게 될 데이터 사양을 나타냄
+
+inputs.dtype
+
+model.summary()
+
+#다중 입력, 다중 출력 모델
+
+vocabulary_size = 10000
+num_tags = 100
+num_departments = 4
+
+# 입력 정의
+title = keras.Input(shape=(vocabulary_size,), name="title")           # 제목
+text_body = keras.Input(shape=(vocabulary_size,), name="text_body")   # 본문
+tags = keras.Input(shape=(num_tags,), name="tags")                    # 사용자 추가 태그 (원-핫 인코딩으로 가정)
+
+# 입력 특성
+features = layers.concatenate([title, text_body, tags])
+features = layers.Dense(64, activation="relu")(features)
+
+# 출력 정의
+priority = layers.Dense(1, activation="sigmoid", name="priority")(features)
+department = layers.Dense(num_departments, activation="softmax", name="department")(features)
+
+# 입출력 지정 모델 정의
+model = keras.Model(inputs=[title, text_body, tags], outputs=[priority, department])
+
+model.summary()
+
+import numpy as np
+
+num_samples = 1280
+
+# 더미 입력 데이터
+title_data = np.random.randint(0, 2, size=(num_samples, vocabulary_size))
+text_body_data = np.random.randint(0, 2, size=(num_samples, vocabulary_size))
+tags_data = np.random.randint(0, 2, size=(num_samples, num_tags))
+
+# 더미 타깃 데이터
+priority_data = np.random.random(size=(num_samples, 1))
+department_data = np.random.randint(0, 2, size=(num_samples, num_departments))
+
+# 모델 컴파일
+model.compile(optimizer="rmsprop",
+              loss=["mean_squared_error", "categorical_crossentropy"],
+              metrics=[["mean_absolute_error"],["accuracy"]])
+
+#모델 훈련
+model.fit([title_data, text_body_data, tags_data],
+          [priority_data, department_data])
+
+#모델 성능 평가
+model.evaluate([title_data, text_body_data, tags_data],
+               [priority_data, department_data])
+
+# 예측
+priority_preds, department_preds = model.predict(
+    [title_data, text_body_data, tags_data])
+
+# 모델 컴파일
+model.compile(optimizer="rmsprop",
+              loss={"priority": "mean_squared_error",
+                    "department": "categorical_crossentropy"},
+              metrics={"priority": ["mean_absolute_error"],
+                       "department": ["accuracy"]})
+
+# 모델 학습
+model.fit({"title": title_data, "text_body": text_body_data, "tags": tags_data},
+          {"priority": priority_data, "department": department_data},
+          epochs=1)
+
+# 모델 평가
+model.evaluate({"title": title_data, "text_body": text_body_data, "tags": tags_data},
+               {"priority": priority_data, "department": department_data})
+
+# 예측
+priority_preds, department_preds = model.predict({"title": title_data, "text_body": text_body_data,
+                                                  "tags": tags_data})
+
+
+model.layers
+
+# 특성 추출
+
+features = model.layers[4].output
+difficulty = layers.Dense(3, activation="softmax", name="difficulty")(features)
+
+new_model = keras.Model(
+    inputs=[title, text_body, tags],
+    outputs=[priority, department, difficulty])
+
+#Model 서브클래싱
+
+# 고객 이슈 티켓 관리 모델
+
+class CustomerTicketModel(keras.Model):
+
+    def __init__(self, num_departments):
+        super().__init__()
+        self.concat_layer = layers.Concatenate()
+        self.mixing_layer = layers.Dense(64, activation="relu")
+        self.priority_scorer = layers.Dense(1, activation="sigmoid")
+        self.department_classifier = layers.Dense(
+            num_departments, activation="softmax")
+
+    def call(self, inputs):
+        title = inputs["title"]
+        text_body = inputs["text_body"]
+        tags = inputs["tags"]
+
+        features = self.concat_layer([title, text_body, tags])
+        features = self.mixing_layer(features)
+        priority = self.priority_scorer(features)
+        department = self.department_classifier(features)
+        return priority, department
+
+model = CustomerTicketModel(num_departments=4)
+
+priority, department = model(
+    {"title": title_data, "text_body": text_body_data, "tags": tags_data})
+
+model.compile(optimizer="rmsprop",
+              loss=["mean_squared_error", "categorical_crossentropy"],
+              metrics=[["mean_absolute_error"], ["accuracy"]])
+model.fit({"title": title_data,
+           "text_body": text_body_data,
+           "tags": tags_data},
+          [priority_data, department_data],
+          epochs=1)
+model.evaluate({"title": title_data,
+                "text_body": text_body_data,
+                "tags": tags_data},
+               [priority_data, department_data])
+priority_preds, department_preds = model.predict({"title": title_data,
+                                                  "text_body": text_body_data,
+                                                  "tags": tags_data})
+
+#혼합 모델
+
+# 서브클래싱 모델이 포함된 함수형 모델
+
+class Classifier(keras.Model):
+
+    def __init__(self, num_classes=2):
+        super().__init__()
+        if num_classes == 2:
+            num_units = 1
+            activation = "sigmoid"
+        else:
+            num_units = num_classes
+            activation = "softmax"
+        self.dense = layers.Dense(num_units, activation=activation)
+
+    def call(self, inputs):
+        return self.dense(inputs)
+
+inputs = keras.Input(shape=(3,))
+features = layers.Dense(64, activation="relu")(inputs)
+outputs = Classifier(num_classes=10)(features)
+model = keras.Model(inputs=inputs, outputs=outputs)
+
+# 함수형 모델이 포함된 서브클래스 모델
+
+inputs = keras.Input(shape=(64,))
+outputs = layers.Dense(1, activation="sigmoid")(inputs)
+binary_classifier = keras.Model(inputs=inputs, outputs=outputs)
+
+class MyModel(keras.Model):
+
+    def __init__(self, num_classes=2):
+        super().__init__()
+        self.dense = layers.Dense(64, activation="relu")
+        self.classifier = binary_classifier
+
+    def call(self, inputs):
+        features = self.dense(inputs)
+        return self.classifier(features)
+
+model = MyModel()
+
+#내장된 훈련 루프와 평가 루프 사용하기
+
+# 내장 훈련 루프
+
+from tensorflow.keras.datasets import mnist
+
+def get_mnist_model():
+    inputs = keras.Input(shape=(28 * 28,))
+    features = layers.Dense(512, activation="relu")(inputs)
+    features = layers.Dropout(0.5)(features)
+    outputs = layers.Dense(10, activation="softmax")(features)
+    model = keras.Model(inputs, outputs)
+    return model
+
+(images, labels), (test_images, test_labels) = mnist.load_data()
+images = images.reshape((60000, 28 * 28)).astype("float32") / 255
+test_images = test_images.reshape((10000, 28 * 28)).astype("float32") / 255
+train_images, val_images = images[10000:], images[:10000]
+train_labels, val_labels = labels[10000:], labels[:10000]
+
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.fit(train_images, train_labels,
+          epochs=3,
+          validation_data=(val_images, val_labels))
+test_metrics = model.evaluate(test_images, test_labels)
+predictions = model.predict(test_images)
+
+# 사용자 정의 지표
+
+import tensorflow as tf
+
+class RootMeanSquaredError(keras.metrics.Metric):
+
+    def __init__(self, name="rmse", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self.mse_sum = self.add_weight(name="mse_sum", initializer="zeros")
+        self.total_samples = self.add_weight(
+            name="total_samples", initializer="zeros", dtype="int32")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_true = tf.one_hot(y_true, depth=tf.shape(y_pred)[1])
+        mse = tf.reduce_sum(tf.square(y_true - y_pred))
+        self.mse_sum.assign_add(mse)
+        num_samples = tf.shape(y_pred)[0]
+        self.total_samples.assign_add(num_samples)
+
+    def result(self):
+        return tf.sqrt(self.mse_sum / tf.cast(self.total_samples, tf.float32))
+
+    def reset_state(self):
+        self.mse_sum.assign(0.)
+        self.total_samples.assign(0)
+
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy", RootMeanSquaredError()])
+model.fit(train_images, train_labels,
+          epochs=3,
+          validation_data=(val_images, val_labels))
+test_metrics = model.evaluate(test_images, test_labels)
+
+# 콜백
+
+#EarlyStopping과 ModelCheckpoint
+callbacks_list = [
+    keras.callbacks.EarlyStopping(
+        monitor="val_accuracy",
+        patience=2,
+    ),
+    keras.callbacks.ModelCheckpoint(
+        filepath="checkpoint_path.keras",   # 확장자명 h5 -> keras로 변경
+        monitor="val_loss",
+        save_best_only=True,
+    )
+]
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.fit(train_images, train_labels,
+          epochs=10,
+          callbacks=callbacks_list,
+          validation_data=(val_images, val_labels))
+
+model = keras.models.load_model("checkpoint_path.keras")
+
+# 사용자 정의 콜백
+
+from matplotlib import pyplot as plt
+
+class LossHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs):
+        self.per_batch_losses = []
+
+    def on_batch_end(self, batch, logs):
+        self.per_batch_losses.append(logs.get("loss"))
+
+    def on_epoch_end(self, epoch, logs):
+        plt.clf()
+        plt.plot(range(len(self.per_batch_losses)), self.per_batch_losses,
+                 label="Training loss for each batch")
+        plt.xlabel(f"Batch (epoch {epoch})")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.savefig(f"plot_at_epoch_{epoch}")
+        self.per_batch_losses = []
+
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.fit(train_images, train_labels,
+          epochs=10,
+          callbacks=[LossHistory()],
+          validation_data=(val_images, val_labels))
+
+# 텐서보드를 사용한 모니터링과 시각화
+
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+
+tensorboard = keras.callbacks.TensorBoard(
+    log_dir="./full_path_to__your_log_dir",
+)
+model.fit(train_images, train_labels,
+          epochs=10,
+          validation_data=(val_images, val_labels),
+          callbacks=[tensorboard])
+
+%load_ext tensorboard
+%tensorboard --logdir ./full_path_to__your_log_dir
+
+#조별 학습 모델
+
+class RootMeanSquaredLogarithmicError(keras.metrics.Metric):
+
+    def __init__(self, name="rmsle", **kwargs):
+        super().__init__(name=name, **kwargs)
+        # 로그 오차 제곱합을 저장하기 위한 상태 변수 초기화
+        self.sum_squared_log_errors = self.add_weight(name="sum_squared_log_errors", initializer="zeros")
+        # 총 샘플 수를 저장하기 위한 상태 변수 초기화
+        self.total_samples = self.add_weight(name="total_samples", initializer="zeros", dtype="int32")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        # Convert y_true to one-hot encoding to match y_pred shape
+        y_true = tf.one_hot(y_true, depth=tf.shape(y_pred)[-1]) # depth should match the last dimension of y_pred
+        
+        # y_true와 y_pred를 float32로 변환
+        y_true = tf.cast(y_true, tf.float32)
+        y_pred = tf.cast(y_pred, tf.float32)
+
+        # log1p(x) = log(x + 1)을 계산하여 로그 오차를 다룸 (log(0) 문제 방지)
+        log_true = tf.math.log1p(y_true)
+        log_pred = tf.math.log1p(y_pred)
+
+        # 로그 오차의 제곱을 계산
+        squared_log_errors = tf.square(log_true - log_pred)
+
+        # 로그 오차 제곱합을 상태 변수에 누적
+        self.sum_squared_log_errors.assign_add(tf.reduce_sum(squared_log_errors))
+        # 총 샘플 수를 상태 변수에 누적
+        self.total_samples.assign_add(tf.cast(tf.size(y_true), tf.int32))
+
+    def result(self):
+        # 로그 오차 제곱의 평균을 계산하고, RMSLE 값을 반환 (제곱근 계산)
+        mean_squared_log_error = self.sum_squared_log_errors / tf.cast(self.total_samples, tf.float32)
+        return tf.sqrt(mean_squared_log_error)
+
+    def reset_state(self):
+        # 에포크가 끝날 때 상태를 초기화하여 새로운 평가를 위한 준비
+        self.sum_squared_log_errors.assign(0.)
+        self.total_samples.assign(0)
+
+# TEST
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy", RootMeanSquaredLogarithmicError()])
+model.fit(train_images, train_labels,
+          epochs=3,
+          validation_data=(val_images, val_labels))
+test_metrics = model.evaluate(test_images, test_labels)
+
+from matplotlib import pyplot as plt
+from tensorflow import keras
+
+class LossHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs=None):
+        # 초기화: validation 손실 및 정확도를 저장할 리스트
+        self.per_batch_losses = []
+        self.epoch_val_losses = []
+        self.epoch_val_accuracies = []
+
+    def on_batch_end(self, batch, logs=None):
+        # 각 배치의 Training Loss 저장
+        self.per_batch_losses.append(logs.get("loss"))
+
+    def on_epoch_end(self, epoch, logs=None):
+      # Validation의 loss 및 accuracy
+        val_loss = logs.get("val_loss")
+        val_accuracy = logs.get("val_accuracy")
+
+        # validation metrics 저장 
+        self.epoch_val_losses.append(val_loss)
+        self.epoch_val_accuracies.append(val_accuracy)
+
+
+        plt.clf()
+        plt.figure(figsize=(12, 5))
+
+        plt.subplot(1, 2, 1)
+        plt.plot(range(len(self.per_batch_losses)), self.per_batch_losses, label="Training loss (per batch)")
+        plt.xlabel(f"Batch (epoch {epoch})")
+        plt.ylabel("Loss")
+        plt.legend()
+
+        # validation loss, accuracy 
+        plt.subplot(1, 2, 2)
+        plt.plot(range(1, epoch + 2), self.epoch_val_losses, label="Validation loss")
+        plt.plot(range(1, epoch + 2), self.epoch_val_accuracies, label="Validation accuracy")
+        plt.xlabel("Epoch")
+        plt.ylabel("Metrics")
+        plt.legend()
+
+
+        plt.savefig(f"plot_at_epoch_{epoch}")
+
+
+        self.per_batch_losses = []
+
+# 모델 설정
+model = get_mnist_model()
+model.compile(optimizer="rmsprop",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+
+# 모델 훈련
+model.fit(train_images, train_labels,
+          epochs=10,
+          callbacks=[LossHistory()],
+          validation_data=(val_images, val_labels))
