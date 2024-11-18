@@ -19,10 +19,10 @@
     - 해당 코드의 기능, 존재 이유, 작동 원리 등을 기술했는지 확인
     - 주석을 보고 코드 이해가 잘 되었는지 확인
         - 중요! 잘 작성되었다고 생각되는 부분을 캡쳐해 근거로 첨부
-        <img width="522" alt="image" src="https://github.com/user-attachments/assets/f33f96ad-bceb-42f4-aef9-ea109df5e56f">
+        <img width="522" alt="image" src="https://github.com/user-attachments/assets/f33f96ad-bceb-42f4-aef9-ea109df5e56f">  
         -> face detection 좌표에 대한 문제점을 고민한 흔적이 보임
 
-        <img width="605" alt="image" src="https://github.com/user-attachments/assets/b4a8efd9-d84e-4c8d-b16a-faf7dceaa825">
+        <img width="605" alt="image" src="https://github.com/user-attachments/assets/b4a8efd9-d84e-4c8d-b16a-faf7dceaa825">  
           -> 스티커의 배경이 사라지지 않는 부분에 대한 고찰이 보임
 
         
@@ -32,7 +32,7 @@
     - 프로젝트 평가 기준에 더해 추가적으로 수행한 나만의 시도, 
     실험이 기록되어 있는지 확인
         - 중요! 잘 작성되었다고 생각되는 부분을 캡쳐해 근거로 첨부
-        <img width="621" alt="image" src="https://github.com/user-attachments/assets/997d22a5-67da-438d-9a07-5b6bee6725f8">
+        <img width="621" alt="image" src="https://github.com/user-attachments/assets/997d22a5-67da-438d-9a07-5b6bee6725f8">  
         -> 이미지에 대해 밝기를 변경하여 랜드마크를 잘 찾아보려고 노력해본 점이 잘 작성되었다고 생각!
 
 - [O]  **4. 회고를 잘 작성했나요?**
@@ -40,7 +40,7 @@
     배운점과 아쉬운점, 느낀점 등이 기록되어 있는지 확인
     - 전체 코드 실행 플로우를 그래프로 그려서 이해를 돕고 있는지 확인
         - 중요! 잘 작성되었다고 생각되는 부분을 캡쳐해 근거로 첨부
-        <img width="646" alt="image" src="https://github.com/user-attachments/assets/43f5bfdc-a9ec-4563-b697-987f6395d115">
+        <img width="646" alt="image" src="https://github.com/user-attachments/assets/43f5bfdc-a9ec-4563-b697-987f6395d115">  
         -> 여러 시도를 해보고, 결과에 대한 회고를 해본 점이 보임!
 
         
