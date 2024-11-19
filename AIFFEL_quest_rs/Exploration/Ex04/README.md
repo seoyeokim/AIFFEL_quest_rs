@@ -12,11 +12,11 @@
      
 
 
-          <img src="image/p1.png"/>
+          <img src="images/p1.png"/>
      
 
 
-          <img src="image/p2.png"/>
+          <img src="images/p2.png"/>
 
   
 
@@ -24,11 +24,11 @@
 
 
 
-          <img src="image/p9.png"/>
+          <img src="images/p9.png"/>
 
 
 
-          <img src="image/p10.png"/>
+          <img src="images/p10.png"/>
 
 
 
@@ -37,7 +37,7 @@
 
 
 
-          <img src="image/p11.png"/>
+          <img src="images/p11.png"/>
 
 
 
@@ -50,7 +50,12 @@
         - 중요! 잘 작성되었다고 생각되는 부분을 캡쳐해 근거로 첨부
 
         - 아래 사진을 통해 확인 가능하며, 세그멘테이션으로 객체 분리 및 객체와 배경 분리에 대한 코드에 주석으로 설명을 첨부하였음
-          <img src="image/p3.png"/>
+     
+
+
+          <img src="images/p3.png"/>
+
+
         
 - [O]  **3. 에러가 난 부분을 디버깅하여 문제를 해결한 기록을 남겼거나
 새로운 시도 또는 추가 실험을 수행해봤나요?**
@@ -63,7 +68,7 @@
      
 
 
-          <img src="image/p6.png"/>
+          <img src="images/p6.png"/>
 
 
 
@@ -78,11 +83,11 @@
      
 
 
-          <img src="image/p4.png"/>
+          <img src="images/p4.png"/>
      
 
 
-          <img src="image/p5.png"/>
+          <img src="images/p5.png"/>
           
           
         
@@ -95,11 +100,11 @@
      
 
 
-          <img src="image/p7.png"/>
+          <img src="images/p7.png"/>
      
 
 
-          <img src="image/p8.png"/>
+          <img src="images/p8.png"/>
 
 
           
